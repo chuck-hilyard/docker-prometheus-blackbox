@@ -21,8 +21,7 @@ node('common')  {
 
   stage('App Build') {
 		//unstash 'everything'
-    sh "go env"
-    sh "go get github.com/prometheus/blackbox_exporter"
+    //sh "go get github.com/prometheus/blackbox_exporter"
     sh "GOOS=linux make build" 
     sh "mv docker-prometheus-blackbox blackbox_exporter"
     stash includes: '**', name: 'everything'
