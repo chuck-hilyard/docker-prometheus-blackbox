@@ -1,6 +1,6 @@
 
 node('common')  {
-	PROJECT_NAME = 'prometheus-blackbox'
+  PROJECT_NAME = 'prometheus-blackbox'
   def CONSUL_URL = "http://consul:8500/v1/kv/${PROJECT_NAME}/config?keys"
   def response = httpRequest(contentType: 'APPLICATION_JSON', url: "${CONSUL_URL}")
   def consul_key_list = response.content.tokenize(",")
@@ -16,12 +16,9 @@ node('common')  {
   stage('Code Checkout') {
     git branch: "${consul_keys["branch"]}", url: "${consul_keys["github_repo"]}"
     checkout scm
-    //stash includes: '**', name: 'everything'
   }
 
   stage('App Build') {
-		//unstash 'everything'
-    //sh "go get github.com/prometheus/blackbox_exporter"
     sh "GOOS=linux make build" 
     sh "mv docker-prometheus-blackbox blackbox_exporter"
     stash includes: '**', name: 'everything'
@@ -33,7 +30,7 @@ node('docker-builds') {
   FQDN_HYPHENATED = "${consul_keys["FQDN"]}".toString().replace(".","-")
 
   stage('Docker Build') {
-		unstash 'everything'
+    unstash 'everything'
     sh "docker build -t ${PROJECT_NAME}:${consul_keys["branch"]} ."
     sh "docker tag ${PROJECT_NAME}:${consul_keys["branch"]} ${consul_keys["AWS_ACCOUNT_NUMBER"]}.dkr.ecr.us-west-2.amazonaws.com/${PROJECT_NAME}-${FQDN_HYPHENATED}:${consul_keys["branch"]}"
   }
@@ -44,7 +41,7 @@ node('docker-builds') {
   }
 }
 
-// groovy ONLY executes on master nodes and must be included in scriptApproval.xml
+// groovy ONLY executes on jenkins master nodes and must be included in scriptApproval.xml
 // README: https://github.com/jenkinsci/pipeline-plugin/blob/master/TUTORIAL.md#serializing-local-variables
 import groovy.text.StreamingTemplateEngine
 
@@ -52,5 +49,5 @@ import groovy.text.StreamingTemplateEngine
 def sortBindings(vars) {
   def template = new StreamingTemplateEngine().createTemplate(text);
   String stuff = template.make(vars);
-	return stuff;
+  return stuff;
 }
